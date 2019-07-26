@@ -343,10 +343,10 @@ class YCbCr:
             self.frame_size_out = self.reader.get_frame_size()
 
             # If file-sizes differ, just process the smaller ammount of frames
-            n1 = os.path.getsize(self.filename) / self.frame_size_in
+            n1 = os.path.getsize(self.filename[0]) / self.frame_size_in
             n2 = n1
             if self.filename_diff:
-                n2 = os.path.getsize(self.filename_diff) / self.frame_size_in
+                n2 = os.path.getsize(self.filename_diff[0]) / self.frame_size_in
 
             self.num_frames = min(n1, n2)
 
@@ -424,7 +424,7 @@ class YCbCr:
                 sys.stdout.flush()
         fd_out.close()
 
-    def psnr(self):
+    def psnr(self, out_file_id=0, in_file_id=0):
         """
         PSNR calculations.
         Generator gives PSNR for
@@ -444,8 +444,8 @@ class YCbCr:
             return 10 * np.log10(255 ** 2 / m)
 
         yy = []; cb = []; cr = []; bd = []
-        with open(self.filename, 'rb') as fd_1, \
-                open(self.filename_diff, 'rb') as fd_2:
+        with open(self.filename[in_file_id], 'rb') as fd_1, \
+                open(self.filename_diff[out_file_id], 'rb') as fd_2:
             for i in xrange(self.num_frames):
                 self.__read_frame(fd_1)
                 frame1 = self.__copy_planes()[:-1]    # skip whole frame
@@ -457,10 +457,13 @@ class YCbCr:
                 cr.append(psnr(frame1[2], frame2[2]))
                 bd.append((6 * yy[-1] + cb[-1] + cr[-1]) / 8.0)
 
-                yield [yy[-1], cb[-1], cr[-1], bd[-1]]
+                # yield [yy[-1], cb[-1], cr[-1], bd[-1]]
 
-            yield ['-', '-', '-', '-', '-']
-            yield [sum(yy)/len(yy), sum(cb)/len(cb), sum(cr)/len(cr), sum(bd)/len(bd)]
+            #yield ['-', '-', '-', '-', '-']
+            return [sum(yy)/len(yy), sum(cb)/len(cb), sum(cr)/len(cr), sum(bd)/len(bd)]
+
+    def get_accout_diff(self):
+        return len(self.filename_diff)
 
     def ssim(self):
         """
@@ -473,7 +476,7 @@ class YCbCr:
         """
         import scipy.ndimage
         from numpy.ma.core import exp
-        from scipy.constants.constants import pi
+        from scipy.constants import pi
 
         def compute_ssim(img_mat_1, img_mat_2):
             #Variables for Gaussian kernel definition
@@ -720,12 +723,12 @@ class YCbCr:
         if self.height & 0xF != 0:
             print >> sys.stderr, "[WARNING] - hight not divisable by 16"
 
-        size = os.path.getsize(self.filename)
+        size = os.path.getsize(self.filename[0])
         if not self.num_frames == size / float(self.frame_size_in):
             print >> sys.stderr, "[WARNING] - # frames not integer"
 
         if self.filename_diff:
-            size_diff = os.path.getsize(self.filename_diff)
+            size_diff = os.path.getsize(self.filename_diff[0])
             if not size == size_diff:
                 print >> sys.stderr, "[WARNING] - file-sizes are not equal"
 
