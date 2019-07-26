@@ -52,24 +52,21 @@ def plot_psnr(arg):
 
     plt.show()
 
-def plot_psnr_all(arg):
+def plot_psnr_all(arg, contain):
     """
     PSNR, all planes
     """
-    yuv = YCbCr(**vars(arg))
-
+    ind = [500, 2000, 4500, 13000]  # the x locations for the groups
     plt.figure()
     plt.title(create_title_string('PSNR', 'Bitrate'))
-    # choice codec logic here.actually a args plan
-    for infile in range(len(arg.filename)):
-        y = []
-        for diff_file in range(len(arg.filename_diff)):
-            # temp = [p for p in yuv.psnr(diff_file, infile)]
-            temp = [yuv.psnr(diff_file, infile)]
-            y.append(temp[-1][-1])
-            # y.append(temp[3][-1])
-        ind = [0.4, 2, 4.5, 13]  # the x locations for the groups
-        plt.plot(ind, y, 'o-', label='Frame'+str(infile))
+    for i in range(len(contain)):
+        yuv = YCbCr(filename=contain[i][0], filename_diff=contain[i][1], width=arg.width, height=arg.height, yuv_format_in=arg.yuv_format_in)
+        for infile in range(len(contain[i][0])):
+            point = []
+            for diff_file in range(len(contain[i][1])):
+                temp = [yuv.psnr(diff_file, infile)]
+                point.append(temp[-1][-1])
+            plt.plot(ind, point, 'o-', label='hevc_'+str(infile)+str(i))
 
     plt.legend()
     plt.ylabel('Psnr-dB')
@@ -80,21 +77,35 @@ def plot_psnr_all(arg):
 
 def main():
     args = parse_args()
-    
+    if len(args.input_test) != len(args.compare_test):
+        print "command line error!!"
+        return
+    contain = []
+    for i in range(len(args.input_test)):
+        inputfile = args.input_test[i].split(',')
+        outputfile = args.compare_test[i].split(',')
+        inputfile = [args.inputpath + p for p in inputfile]
+        outputfile = [args.inputpath + p for p in outputfile]
+        contain.append([inputfile, outputfile])
+
     t1 = time.clock()
-    plot_psnr_all(args)
+    plot_psnr_all(args, contain)
     t2 = time.clock()
     print "\nTime: ", round(t2 - t1, 4)
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-I', '--filename', type=str, help='filename', nargs='+')
-    #parser.add_argument('-I', '--input', type=str, help='filename', action='append', required=True)
+    # parser.add_argument('-I', '--filename', type=str, help='filename', nargs='+')
+    parser.add_argument('-I', '--inputpath', type=str, help='filename', nargs='?')
+    # parser.add_argument('-g', '--testgroup', type=int, help='testgroup_number',  nargs='?')
+    parser.add_argument('-pi', '--input_test', type=str, help='input_test_plan', action='append', required=True)
+    parser.add_argument('-po', '--compare_test', type=str, help='compare_test_plan',  action='append', required=True)
+
     parser.add_argument('-W', '--width', type=int, required=True)
     parser.add_argument('-H', '--height', type=int, required=True)
     parser.add_argument('-C', '--yuv_format_in', choices=['IYUV', 'UYVY', 'YV12', 'YVYU', 'YUY2', '422'], required=True)
-    parser.add_argument('-O', '--filename_diff', type=str, help='filename', nargs='+')
+    # parser.add_argument('-O', '--filename_diff', type=str, help='filename', nargs='+')
     #parser.add_argument('-O', '--output', type=str, help='filename', action='append', required=True)
     args = parser.parse_args()
     return args
