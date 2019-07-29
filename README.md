@@ -19,7 +19,7 @@ http://en.wikipedia.org/wiki/YCbCr
 * multi inputfile according excel configture file
 
 ### **Flowchart**
-[flow](https://github.com/chandlerbingbing/yuv-tools/FlowChart.png)
+[flow](https://github.com/chandlerbingbing/yuv-tools/tree/challenge_everything/FlowChart.png)
 ### **purpose**: show Transcode quality 
 
 ### **Install direction**
@@ -59,7 +59,7 @@ http://en.wikipedia.org/wiki/YCbCr
                  -G  --grouptap GROUPTAP [GROUPTAP ...]
                      different transcoding yuv
 -----
-[configure](https://github.com/chandlerbingbing/yuv-tools/configure.png)
+[configure](https://github.com/chandlerbingbing/yuv-tools/tree/challenge_everything/configure.png)
 Screenshots
 -----------
 
