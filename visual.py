@@ -9,6 +9,7 @@ import argparse
 import time
 import os
 import xlrd
+# import xlwt
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -57,17 +58,19 @@ def plot_psnr_all(arg, contain):
     """
     PSNR, all planes
     """
-    ind = arg.Bit_rate  # the x locations for the groups
+    # ind = arg.Bit_rate  # the x locations for the groups
     plt.figure()
     plt.title(create_title_string('PSNR', 'Bitrate'))
     for i in range(len(contain)):
         yuv = YCbCr(filename=contain[i][0], filename_diff=contain[i][1], width=arg.width, height=arg.height, yuv_format_in=arg.yuv_format_in)
         for infile in range(len(contain[i][0])):
             point = []
+            ind = []
             for diff_file in range(len(contain[i][1])):
                 temp = yuv.psnr(diff_file, infile)
                 point.append(temp[0])
-            plt.plot(ind, point, 'o-', label='hevc_'+str(infile)+str(i))
+                ind.append(contain[i][2][diff_file])
+            plt.plot(ind, point, 'o-', label=contain[i][3])
 
     plt.legend()
     plt.ylabel('Psnr-dB')
@@ -80,7 +83,7 @@ def main():
     args = parse_args()
     contain = []
     for i in range(len(args.input_test)):
-        compare_test = find_all_yuv(args, args.input_test[i])
+        compare_test = find_all_yuv(args, args.input_test[i], args.grouptag[i])
         contain.append(compare_test)
     # for i in range(len(args.input_test)):
     #     inputfile = args.input_test[i].split(',')
@@ -94,41 +97,39 @@ def main():
     t2 = time.clock()
     print "\nTime: ", round(t2 - t1, 4)
 
-def find_all_yuv(arg, inputfile):
+def find_all_yuv(arg, inputfile, grouptag):
     workbook = xlrd.open_workbook(arg.inputpath)
     worksheet = workbook.sheet_by_index(0)
-    order = 1
-    while worksheet.cell(order, 0).value != xlrd.empty_cell.value:
+    order = 0
+    while order < worksheet.nrows:
         if worksheet.cell(order, 0).value == inputfile:
             break
         order = order+1
     Originalyuvpath = [str(worksheet.cell(order, 3).value)]
     encodeyuvpath = []
-    order = 1
-    for i in range(len(arg.Bit_rate)):
-        while worksheet.cell(order, 7).value != xlrd.empty_cell.value:
-            if worksheet.cell(order, 7).value == inputfile and worksheet.cell(order, 6).value == arg.Bit_rate[i]:
-                encodeyuvpath.append(str(worksheet.cell(order, 3).value))
-                order = 1
-                break
-            order = order+1
-    return [Originalyuvpath, encodeyuvpath]
+    encodeyuvbitrate = []
+    order = 0
+    while order < worksheet.nrows:
+        if worksheet.cell(order, 7).value == inputfile and worksheet.cell(order, 8).value == grouptag:
+            encodeyuvpath.append(str(worksheet.cell(order, 3).value))
+            encodeyuvbitrate.append(worksheet.cell(order, 6).value)
+            linetag = str(worksheet.cell(order, 8).value + '_' + worksheet.cell(order, 7).value)
+        order = order+1
+    return [Originalyuvpath, encodeyuvpath, encodeyuvbitrate, linetag]
 
 def parse_args():
     parser = argparse.ArgumentParser()
     # parser.add_argument('-I', '--filename', type=str, help='filename', nargs='+')
     # we need modify this to read excel path
-    parser.add_argument('-I', '--inputpath', type=str, help='filename', nargs='?')
+    parser.add_argument('-I', '--inputpath', type=str, help='the excel configure file path', nargs='?')
     # parser.add_argument('-g', '--testgroup', type=int, help='testgroup_number',  nargs='?')
-    parser.add_argument('-pi', '--input_test', type=str, help='input_test_plan', nargs='+', required=False)
+    parser.add_argument('-P', '--input_test', type=str, help='the Original yuv file name, you can put plenty,and separate by dot', nargs='+', required=False)
     parser.add_argument('-po', '--compare_test', type=str, help='compare_test_plan',  action='append', required=False)
-
-    parser.add_argument('-W', '--width', type=int, required=False)
-    parser.add_argument('-H', '--height', type=int, required=False)
-    parser.add_argument('-C', '--yuv_format_in', choices=['IYUV', 'UYVY', 'YV12', 'YVYU', 'YUY2', '422'], required=False)
+    parser.add_argument('-W', '--width', type=int, required=False, help='width')
+    parser.add_argument('-H', '--height', type=int, required=False, help='height')
+    parser.add_argument('-C', '--yuv_format_in', choices=['IYUV', 'UYVY', 'YV12', 'YVYU', 'YUY2', '422'], required=False, help='type')
     parser.add_argument('-M', '--Bit_rate', type=int, help='bitrate with compare yuv', nargs='+')
-    # parser.add_argument('-O', '--filename_diff', type=str, help='filename', nargs='+')
-    #parser.add_argument('-O', '--output', type=str, help='filename', action='append', required=True)
+    parser.add_argument('-G', '--grouptag', type=str, help='different transcoding yuv', nargs='+')
     args = parser.parse_args()
     return args
 

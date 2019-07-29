@@ -4,7 +4,7 @@ YCbCr (YUV)
 Tools for various operations on raw YCbCr video files.
 http://en.wikipedia.org/wiki/YCbCr
 
-ycbcr.py - is the main class that supports the following formats:
+### ycbcr.py - is the main class that supports the following formats:
 
 * IYUV
 * UYVY
@@ -14,57 +14,54 @@ ycbcr.py - is the main class that supports the following formats:
 * YUY2
 * 422
 
-Supported operations:
+### **Supported operations**
+* PSNR calculations, during different Bitrates YUV files
+* multi inputfile according excel configture file
 
-* basic info about a file
-* convert between any of the formats above (including correct sub- re-sampling of chroma-data)
-* split a file into individual frames
-* creates a diff between two files
-* PSNR calculations, one value per color-plane including weighted and average
-* get luma-data per frame
-* SSIM calculation on luma
-* convert between 8bpp and 10bpp
-* flip left/right, upside/down
-* draw frame number in luma-data
-* crop
-* visualization of PSNR/SSIM using matplotlib
-* reduce framerate by throwing away frames
+### **Flowchart**
+[flow](https://github.com/chandlerbingbing/yuv-tools/FlowChart.png)
+### **purpose**: show Transcode quality 
 
-Also includes a simple GUI using wxpython that wraps
-the psnr/ssim operations above.
+### **Install direction**
+#### sudo apt update
+       `sudo apt upgrade`
+       `#installing python 2.7 and pip for it`
+       `sudo apt install python2.7 python-pip`
+       `pip install numpy`
+       `pip install <other missing moduel>`
 
-Usage
+### Usage
+-----
+	$ ./visual.py -I /home/cxh/code/yuv-tools/testsheet.xlsx -P 10_.yuv 10_hecv.yuv -W 4096 -H 2160 -C YV12 -G hevc01 hevc02
+
 -----
 
-	$ ./ycbcr.py info foreman_352x288.yuv 352 288 YV12
-	$ ./ycbcr.py convert --help
-	$ ./ycbcr.py diff --help
-	$ ./ycbcr.py split --help
-	$ ./ycbcr.py psnr --help
-	$ ./ycbcr.py ssim --help
-	$ ./ycbcr.py 8to10 --help
-	$ ./ycbcr.py 10to8 --help
-	$ ./ycbcr.py fliplr --help
-	$ ./ycbcr.py flipud --help
-	$ ./ycbcr.py fnum --help
-	$ ./ycbcr.py crop --help
-	$ ./ycbcr.py fr --help
-	$ ./plot_diff.py foreman_cif_frame_0.yuv foreman_cif_frame_1.yuv 352 288 YV12
-	$ ./visual.py psnr_all foreman_cif_frame_0.yuv 352 288 YV12 foreman_cif_frame_1.yuv
-Files
+### **usage:** 
+       visual.py [-h] [-I [INPUTPATH]] 
+                 [-pi INPUT_TEST [INPUT_TEST ...]]
+                 [-W WIDTH] [-H HEIGHT]
+                 [-C {IYUV,UYVY,YV12,YVYU,YUY2,422}]
+                 [-M BIT_RATE [BIT_RATE ...]]
+                 [-G GROUPTAP [GROUPTAP ...]]
+
+      optional arguments:
+                 -h, --help   show this help message and exit
+                 -I [INPUTPATH]   the excel configure file path
+                 -pi INPUT_TEST [INPUT_TEST ...]
+                  the Original yuv file name, you can put plenty,and
+                  separate by dot
+                 -W WIDTH,           width
+                 -H HEIGHT,          height
+                 -C          {IYUV,UYVY,YV12,YVYU,YUY2,422}, 
+                 yuv_format_in {IYUV,UYVY,YV12,YVYU,YUY2,422} type
+                 -M BIT_RATE [BIT_RATE ...]
+                 bitrate with compare yuv
+                 -G  --grouptap GROUPTAP [GROUPTAP ...]
+                     different transcoding yuv
 -----
-
-* ycbcr.py - main class
-* plot_diff.py - matplotlib wrapper around PSNR/SSIM-calculation. Generate nice plots using luma-data.
-* verify.py - unittest
-* visual.py - matplotlib wrapper around PSNR/SSIM-calculation. Generate nice plots.
-
+[configure](https://github.com/chandlerbingbing/yuv-tools/configure.png)
 Screenshots
 -----------
 
 Here's one of the output from visual.py
-
-![psnr](figgis.github.com/yuv-tools/figure_1.png)
-
-![psnr](http://figgis.github.io/yuv-tools/figure_1.png)
 
