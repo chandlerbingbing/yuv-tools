@@ -19,7 +19,7 @@ http://en.wikipedia.org/wiki/YCbCr
 * multi inputfile according excel configture file
 
 ### **Flowchart**
-![flow](https://github.com/chandlerbingbing/yuv-tools/tree/challenge_everything/FlowChart.png)
+![flow](FlowChart.png)
 ### **purpose**: show Transcode quality 
 
 ### **Install direction**
@@ -61,7 +61,7 @@ http://en.wikipedia.org/wiki/YCbCr
                      normally it will be encode from Original yuv
                      but with different bitrate.
 -----
-![configure](https://github.com/chandlerbingbing/yuv-tools/tree/challenge_everything/configure.png)
+![configure](configure.png)
 Screenshots
 
 #### you have to config your own testsheet.xlsx
