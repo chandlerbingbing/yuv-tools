@@ -48,19 +48,28 @@ http://en.wikipedia.org/wiki/YCbCr
                  -h, --help   show this help message and exit
                  -I [INPUTPATH]   the excel configure file path
                  -pi INPUT_TEST [INPUT_TEST ...]
-                  the Original yuv file name, you can put plenty,and
-                  separate by dot
+                     the Original yuv file name, you can put plenty,and
+                  separate by space
                  -W WIDTH,           width
                  -H HEIGHT,          height
-                 -C          {IYUV,UYVY,YV12,YVYU,YUY2,422}, 
-                 yuv_format_in {IYUV,UYVY,YV12,YVYU,YUY2,422} type
+                 -C  {IYUV,UYVY,YV12,YVYU,YUY2,422}, 
+                     yuv_format_in {IYUV,UYVY,YV12,YVYU,YUY2,422} type
                  -M BIT_RATE [BIT_RATE ...]
-                 bitrate with compare yuv
-                 -G  --grouptap GROUPTAP [GROUPTAP ...]
-                     different transcoding yuv
+                     bitrate with compare yuv
+                 -G  --grouptag GROUPTAP [GROUPTAP ...]
+                     this tag named a bunch of test yuv files,
+                     normally it will be encode from Original yuv
+                     but with different bitrate.
 -----
 [configure](https://github.com/chandlerbingbing/yuv-tools/tree/challenge_everything/configure.png)
 Screenshots
+
+#### you have to config your own testsheet.xlsx
+
+refill the yuv file names and it's path, encode from where, bitrate  , grouptag, and so on
+
+using the command line above, -P means you can put every Original yuv files , and same time -G means you choose the test group, which is compare with Original yuv files one by on.
+
 -----------
 
 Here's one of the output from visual.py
