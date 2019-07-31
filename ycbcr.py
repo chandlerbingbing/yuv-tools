@@ -280,6 +280,7 @@ class YCbCr:
         filename_diff=None,
         crop_rect=None,
         num=None,
+        bitdepth=8,
         func=None):
 
         self.supported_420 = [
@@ -314,6 +315,7 @@ class YCbCr:
         self.height = height
         self.yuv_format_in = yuv_format_in
         self.yuv_format_out = yuv_format_out
+        self.bitdepth = bitdepth
 
         if crop_rect:
             rect = namedtuple('rect', 'xs ys xe ye')
@@ -343,13 +345,17 @@ class YCbCr:
             self.frame_size_out = self.reader.get_frame_size()
 
             # If file-sizes differ, just process the smaller ammount of frames
-            n1 = os.path.getsize(self.filename[0]) / self.frame_size_in
+            bitsize = 1
+            if self.bitdepth == 8:
+                bitsize = 1
+            else:
+                bitsize = 2
+            n1 = (os.path.getsize(self.filename[0]) / self.frame_size_in)/bitsize
             n2 = n1
             if self.filename_diff:
-                n2 = os.path.getsize(self.filename_diff[0]) / self.frame_size_in
+                n2 = (os.path.getsize(self.filename_diff[0]) / self.frame_size_in)/bitsize
 
             self.num_frames = min(n1, n2)
-
             self.layout_in = self.reader.get_layout()
             self.layout_out = self.reader.get_layout()
             self.frame_size_out = self.frame_size_in
@@ -440,16 +446,22 @@ class YCbCr:
             m = ((a - b) ** 2).mean()
             if m == 0:
                 return float("nan")
-
-            return 10 * np.log10(255 ** 2 / m)
+            maxvalue = 255
+            if self.bitdepth == 10:
+                maxvalue = 1023
+            return 10 * np.log10(maxvalue ** 2 / m)
 
         yy = []; cb = []; cr = []; bd = []
+        if self.bitdepth == 8:
+            read = self.__read_frame
+        else:
+            read = self.__read_frame_10
         with open(self.filename[in_file_id], 'rb') as fd_1, \
                 open(self.filename_diff[out_file_id], 'rb') as fd_2:
             for i in xrange(self.num_frames):
-                self.__read_frame(fd_1)
+                read(fd_1)
                 frame1 = self.__copy_planes()[:-1]    # skip whole frame
-                self.__read_frame(fd_2)
+                read(fd_2)
                 frame2 = self.__copy_planes()[:-1]    # skip whole frame
 
                 yy.append(psnr(frame1[0], frame2[0]))
@@ -460,7 +472,53 @@ class YCbCr:
                 # yield [yy[-1], cb[-1], cr[-1], bd[-1]]
 
             #yield ['-', '-', '-', '-', '-']
+            # yield [sum(yy)/len(yy), sum(cb)/len(cb), sum(cr)/len(cr), sum(bd)/len(bd)]
             return [sum(yy)/len(yy), sum(cb)/len(cb), sum(cr)/len(cr), sum(bd)/len(bd)]
+
+    def psnr_all(self, out_file_id=0, in_file_id=0):
+        """
+        PSNR calculations.
+        Generator gives PSNR for
+        [Y, Cb, Cr, BD]
+        Final line is average for above
+
+        http://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio
+        BD-PSNR
+        http://iphome.hhi.de/wiegand/assets/pdfs/2012_12_IEEE-HEVC-Performance.pdf
+        p.1676
+        """
+        def psnr(a, b):
+            m = ((a - b) ** 2).mean()
+            if m == 0:
+                return float("nan")
+            maxvalue = 255
+            if self.bitdepth == 10:
+                maxvalue = 1023
+            return 10 * np.log10(maxvalue ** 2 / m)
+
+        yy = []; cb = []; cr = []; bd = []
+        if self.bitdepth == 8:
+            read = self.__read_frame
+        else:
+            read = self.__read_frame_10
+        with open(self.filename[in_file_id], 'rb') as fd_1, \
+                open(self.filename_diff[out_file_id], 'rb') as fd_2:
+            for i in xrange(self.num_frames):
+                read(fd_1)
+                frame1 = self.__copy_planes()[:-1]    # skip whole frame
+                read(fd_2)
+                frame2 = self.__copy_planes()[:-1]    # skip whole frame
+
+                yy.append(psnr(frame1[0], frame2[0]))
+                cb.append(psnr(frame1[1], frame2[1]))
+                cr.append(psnr(frame1[2], frame2[2]))
+                bd.append((6 * yy[-1] + cb[-1] + cr[-1]) / 8.0)
+
+                yield [yy[-1], cb[-1], cr[-1], bd[-1]]
+
+            #yield ['-', '-', '-', '-', '-']
+            # yield [sum(yy)/len(yy), sum(cb)/len(cb), sum(cr)/len(cr), sum(bd)/len(bd)]
+            yield [sum(yy)/len(yy), sum(cb)/len(cb), sum(cr)/len(cr), sum(bd)/len(bd)]
 
     def get_accout_diff(self):
         return len(self.filename_diff)
@@ -739,6 +797,17 @@ class YCbCr:
         """
         self.raw = np.fromfile(fd, dtype=np.uint8, count=self.frame_size_in)
         self.raw = self.raw.astype(np.int, copy=False)
+
+        self.yy = self.raw[self.layout_in[0]]
+        self.cb = self.raw[self.layout_in[1]]
+        self.cr = self.raw[self.layout_in[2]]
+
+    def __read_frame_10(self, fd):
+        """
+        Use extended indexing to read 1 frame into self.{y, cb, cr}
+        """
+        self.raw = np.fromfile(fd, dtype=np.uint16, count=self.frame_size_in)
+        self.raw = self.raw.astype(np.uint16)
 
         self.yy = self.raw[self.layout_in[0]]
         self.cb = self.raw[self.layout_in[1]]
