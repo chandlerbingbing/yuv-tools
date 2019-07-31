@@ -51,8 +51,24 @@ def plot_psnr(arg):
     plt.ylabel('weighted dB')
     plt.xlabel('frame')
     plt.grid(True)
-
     plt.show()
+
+def sort_point(ind, point):
+    contain = []
+    for i in range(len(ind)):
+        contain.append([ind[i], point[i]])
+
+    def takefirst(ele):
+        return ele[0]
+
+    contain.sort(key=takefirst)
+    ind = []
+    point = []
+    for i in range(len(contain)):
+        ind.append(contain[i][0])
+        point.append(contain[i][1])
+    return [ind, point]
+
 def plot_psnr_all(arg, contain):
     """
     PSNR, all planes
@@ -61,7 +77,7 @@ def plot_psnr_all(arg, contain):
     plt.figure()
     plt.title(create_title_string('PSNR', 'Bitrate'))
     for i in range(len(contain)):
-        yuv = YCbCr(filename=contain[i][0], filename_diff=contain[i][1], width=arg.width, height=arg.height, yuv_format_in=arg.yuv_format_in, bitdepth=contain[i][4])
+        yuv = YCbCr(filename=contain[i][0], filename_diff=contain[i][1], width=contain[i][5], height=contain[i][6], yuv_format_in=contain[i][7], bitdepth=contain[i][4])
         for infile in range(len(contain[i][0])):
             point = []
             ind = []
@@ -69,7 +85,8 @@ def plot_psnr_all(arg, contain):
                 temp = yuv.psnr(diff_file, infile)
                 point.append(temp[0])
                 ind.append(contain[i][2][diff_file])
-            plt.plot(ind, point, 'o-', label=contain[i][3])
+            temp_sort = sort_point(ind, point)
+            plt.plot(temp_sort[0], temp_sort[1], 'o-', label=contain[i][3])
 
     plt.legend()
     plt.ylabel('Psnr-dB')
@@ -85,7 +102,7 @@ def plot_psnr_frames(arg, contain):
     plt.figure()
     plt.title(create_title_string('PSNR', 'Bitrate'))
     for i in range(len(contain)):
-        yuv = YCbCr(filename=contain[i][0], filename_diff=contain[i][1], width=arg.width, height=arg.height, yuv_format_in=arg.yuv_format_in, bitdepth=contain[i][4])
+        yuv = YCbCr(filename=contain[i][0], filename_diff=contain[i][1], width=contain[i][5], height=contain[i][6], yuv_format_in=contain[i][7], bitdepth=contain[i][4])
         for infile in range(len(contain[i][0])):
             point = []
             for diff_file in range(len(contain[i][1])):
@@ -131,15 +148,22 @@ def find_all_yuv(arg, inputfile, grouptag):
     encodeyuvpath = []
     encodeyuvbitrate = []
     encodeyuvbitdepth = 8
+    width = 1
+    height = 1
+    type = 'YU12'
+    linetag = 'haha'
     order = 0
     while order < worksheet.nrows:
         if worksheet.cell(order, 7).value == inputfile and worksheet.cell(order, 8).value == grouptag:
             encodeyuvpath.append(str(worksheet.cell(order, 3).value))
             encodeyuvbitrate.append(worksheet.cell(order, 6).value)
             linetag = str(worksheet.cell(order, 8).value + '_' + worksheet.cell(order, 7).value)
-            encodeyuvbitdepth = worksheet.cell(order, 5).value
+            encodeyuvbitdepth = int(worksheet.cell(order, 5).value)
+            width = int(worksheet.cell(order, 1).value)
+            height = int(worksheet.cell(order, 2).value)
+            type = str(worksheet.cell(order, 4).value)
         order = order+1
-    return [Originalyuvpath, encodeyuvpath, encodeyuvbitrate, linetag, encodeyuvbitdepth]
+    return [Originalyuvpath, encodeyuvpath, encodeyuvbitrate, linetag, encodeyuvbitdepth, width, height, type]
 
 def ten2eight(filename, filename_out):
     """
