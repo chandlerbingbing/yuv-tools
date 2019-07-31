@@ -32,7 +32,8 @@ http://en.wikipedia.org/wiki/YCbCr
 
 ### Usage
 -----
-	$ ./visual.py -I /home/cxh/code/yuv-tools/testsheet.xlsx -P 10_.yuv 10_hecv.yuv -W 4096 -H 2160 -C YV12 -G hevc01 hevc02
+	$ ./visual.py -I /home/cxh/code/yuv-tools/testauto.xls 
+      -P 10_frames_8k10hevc_Origin.yuv 10_frames_Origin.yuv -G 8k10hevc 264
 
 -----
 
