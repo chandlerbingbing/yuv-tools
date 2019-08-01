@@ -32,8 +32,8 @@ http://en.wikipedia.org/wiki/YCbCr
 
 ### Usage
 -----
-	$ ./visual.py -I /home/cxh/code/yuv-tools/testauto.xls 
-      -P 10_frames_8k10hevc_Origin.yuv 10_frames_Origin.yuv -G 8k10hevc 264
+	$ ./visual.py -I <excel config file path> 
+      -P <Origial yuv file name .....> -G <grouptag .......>
 
 -----
 
@@ -71,7 +71,15 @@ refill the yuv file names and it's path, encode from where, bitrate  , grouptag,
 
 using the command line above, -P means you can put every Original yuv files , and same time -G means you choose the test group, which is compare with Original yuv files one by on.
 
+
 -----------
 
-Here's one of the output from visual.py
+### **example**
 
+based on testauto.xls file
+
+	$ ./visual.py -I /home/cxh/code/yuv-tools/testauto.xls 
+      -P 10_frames_8k10hevc_Origin.yuv 10_frames_Origin.yuv -G 8k10hevc 264
+result show:
+
+![testshoot](test.png)

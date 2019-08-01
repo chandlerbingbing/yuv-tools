@@ -100,7 +100,7 @@ def plot_psnr_frames(arg, contain):
     PSNR, all planes
     """
     # ind = arg.Bit_rate  # the x locations for the groups
-    fig = plt.figure(constrained_layout=True)
+    fig = plt.figure(figsize=[16, 6], constrained_layout=True)
     gs = GridSpec(1, 2, figure=fig)
     plt.suptitle('yuv Quality plot')
     frames_psnr = fig.add_subplot(gs[0, 0])
@@ -123,7 +123,7 @@ def plot_psnr_frames(arg, contain):
                 frame = [frame_order[0] for frame_order in temp]
                 point.append(temp[-1][0])
                 xax.append(contain[i][2][diff_file])
-                frames_psnr.plot(ind[0:-1], frame[0:-1], 'o-', label='hevc'+str(diff_file))
+                frames_psnr.plot(ind[0:-1], frame[0:-1], 'o-', label=contain[i][3]+'_'+str(contain[i][2][diff_file]))
             temp_sort = sort_point(xax, point)
             bits_psnr.plot(temp_sort[0], temp_sort[1], 'o-', label=contain[i][3])
     frames_psnr.legend()
@@ -173,7 +173,8 @@ def find_all_yuv(arg, inputfile, grouptag):
         if worksheet.cell(order, 7).value == inputfile and worksheet.cell(order, 8).value == grouptag:
             encodeyuvpath.append(str(worksheet.cell(order, 3).value))
             encodeyuvbitrate.append(worksheet.cell(order, 6).value)
-            linetag = str(worksheet.cell(order, 8).value + '_' + worksheet.cell(order, 7).value)
+            linetag = str(worksheet.cell(order, 8).value)
+            # linetag = str(worksheet.cell(order, 8).value + '_' + worksheet.cell(order, 7).value)
             encodeyuvbitdepth = int(worksheet.cell(order, 5).value)
             width = int(worksheet.cell(order, 1).value)
             height = int(worksheet.cell(order, 2).value)
