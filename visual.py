@@ -14,6 +14,7 @@ import xlrd
 import numpy as np
 import matplotlib.pyplot as plt
 from ycbcr import YCbCr
+from matplotlib.gridspec import GridSpec
 
 
 def create_title_string(title, subtitle):
@@ -99,20 +100,35 @@ def plot_psnr_frames(arg, contain):
     PSNR, all planes
     """
     # ind = arg.Bit_rate  # the x locations for the groups
-    plt.figure()
-    plt.title(create_title_string('PSNR', 'Bitrate'))
+    fig = plt.figure(constrained_layout=True)
+    gs = GridSpec(1, 2, figure=fig)
+    plt.suptitle('yuv Quality plot')
+    frames_psnr = fig.add_subplot(gs[0, 0])
+    bits_psnr = fig.add_subplot(gs[0, 1])
+    frames_psnr.set_title('Psnr-Y vs Frames')
+    frames_psnr.set_xlabel('frames')
+    frames_psnr.set_ylabel('Psnr-y')
+    bits_psnr.set_title('Psnr vs Bitrate')
+    bits_psnr.set_xlabel('bitrate')
+    bits_psnr.set_ylabel('psnr-y')
+
     for i in range(len(contain)):
         yuv = YCbCr(filename=contain[i][0], filename_diff=contain[i][1], width=contain[i][5], height=contain[i][6], yuv_format_in=contain[i][7], bitdepth=contain[i][4])
         for infile in range(len(contain[i][0])):
             point = []
+            xax = []
             for diff_file in range(len(contain[i][1])):
                 temp = [p for p in yuv.psnr_all(diff_file, infile)]
                 ind = np.arange(len(temp))
-                plt.plot(ind, [i[0] for i in temp], 'o-', label='hevc'+str(diff_file))
-    plt.legend()
-    plt.ylabel('Psnr-dB')
-    plt.xlabel('Bitrate')
-    plt.grid(True)
+                frame = [frame_order[0] for frame_order in temp]
+                point.append(temp[-1][0])
+                xax.append(contain[i][2][diff_file])
+                frames_psnr.plot(ind[0:-1], frame[0:-1], 'o-', label='hevc'+str(diff_file))
+            temp_sort = sort_point(xax, point)
+            bits_psnr.plot(temp_sort[0], temp_sort[1], 'o-', label=contain[i][3])
+    frames_psnr.legend()
+    bits_psnr.legend()
+    # fig.align_labels()
     plt.show()
 
 def find_all_yuv_fromdir(arg, inputfile,grouptag):
@@ -191,8 +207,8 @@ def main():
         compare_test = find_all_yuv(args, args.input_test[i], args.grouptag[i])
         contain.append(compare_test)
     t1 = time.clock()
-    plot_psnr_all(args, contain)
-    # plot_psnr_frames(args, contain)
+    # plot_psnr_all(args, contain)
+    plot_psnr_frames(args, contain)
     t2 = time.clock()
     print "\nTime: ", round(t2 - t1, 4)
     # for i in range(len(args.inputpath)):
